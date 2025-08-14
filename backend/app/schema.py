@@ -23,8 +23,10 @@ class AttendanceCreate(BaseModel):
     date: date
     absentees: List[int]  # List of student IDs
     marked_by: int
-    is_present: str
 
+class ClassStudentCreate(BaseModel):
+    class_id: int
+    student_id: int
 
 class UserOut(BaseModel):
     id: int
