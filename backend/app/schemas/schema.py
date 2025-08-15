@@ -8,7 +8,6 @@ class UserCreate(BaseModel):
     password: str
     role: str
     fullname: str
-    roll: Optional[int] = None
     regno: str
 
 
@@ -27,6 +26,7 @@ class AttendanceCreate(BaseModel):
 class ClassStudentCreate(BaseModel):
     class_id: int
     student_id: int
+    roll_number: int
 
 class UserOut(BaseModel):
     id: int

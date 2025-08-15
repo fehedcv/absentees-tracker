@@ -4,10 +4,22 @@ from database.database import engine, SessionLocal
 import models.models as models
 import schemas.schema as schema
 from datetime import date
+from typing import List, Dict
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import select
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can restrict to your frontend domain in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 def get_db():
     db = SessionLocal()
@@ -18,7 +30,7 @@ def get_db():
         
 @app.post("/users")
 def create_user(user: schema.UserCreate, db: Session = Depends(get_db)):
-    db_user = models.User(username=user.username, password = user.password, fullname = user.fullname, roll = user.roll, role = user.role, regno = user.regno  )
+    db_user = models.User(username=user.username, password = user.password, fullname = user.fullname, role = user.role, regno = user.regno  )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -49,7 +61,7 @@ def insert_attendance(att: schema.AttendanceCreate, db:Session = Depends(get_db)
 
 @app.post("/class_student")
 def insert_class_student(class_student: schema.ClassStudentCreate, db:Session = Depends(get_db)):
-    db_std = models.ClassStudent(class_id = class_student.class_id, student_id = class_student.student_id)
+    db_std = models.ClassStudent(class_id = class_student.class_id, student_id = class_student.student_id, roll_number = class_student.roll_number)
     db.add(db_std)
     db.commit()
     return{"message": "Added succesfully"}
@@ -59,4 +71,20 @@ def get_student_attendance(student_id: int, db: Session = Depends(get_db)):
     records = db.query(models.Attendance).filter(models.Attendance.student_id == student_id).all()
     return records
 
-        
+@app.get("/classes")
+def get_classes(db: Session = Depends(get_db)):
+    classes = db.query(models.Class).all()
+    return [{"id": c.id, "name": c.name} for c in classes]
+
+@app.get("/classes/{class_id}/students")
+def get_students(class_id: int, db: Session = Depends(get_db)) -> List[Dict]:
+    stmt = (
+        select(models.ClassStudent.roll_number, models.User.fullname)
+        .join(models.User, models.ClassStudent.student_id == models.User.id)
+        .where(models.ClassStudent.class_id == class_id, models.User.role == "student")
+    )
+    result = db.execute(stmt).all()
+    if not result:
+        raise HTTPException(status_code=404, detail="No students found for this class")
+    
+    return [{"roll_number": r[0], "name": r[1]} for r in result]

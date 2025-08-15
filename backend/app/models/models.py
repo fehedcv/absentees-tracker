@@ -12,7 +12,6 @@ class User(Base):
     username = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     fullname = Column(String, nullable=False)
-    roll = Column(Integer, nullable=True)
     role = Column(String, nullable=False)  # 'teacher' or 'student'
     regno = Column(String, nullable=False)
 
@@ -77,7 +76,7 @@ class ClassStudent(Base):
     id = Column(Integer, primary_key=True, index=True)
     class_id = Column(Integer, ForeignKey("classes.id"), nullable=False)
     student_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-
+    roll_number = Column(Integer, nullable=True)
     __table_args__ = (
         UniqueConstraint('class_id', 'student_id', name='class_student_constr'),
     )
