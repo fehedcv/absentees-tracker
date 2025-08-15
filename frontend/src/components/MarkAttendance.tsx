@@ -12,6 +12,7 @@ interface Student {
   roll_number: number;
   name: string;
 }
+const backend="https://5cb571fb7611.ngrok-free.app"
 
 const MarkAttendance: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
@@ -26,37 +27,34 @@ const MarkAttendance: React.FC = () => {
 
   // Mock API calls - replace with actual endpoints
   useEffect(() => {
-    // Fetch classes
-    const fetchClasses = async () => {
-      // Replace with actual API: fetch('/api/classes')
-      const mockClasses = [
-        { id: 1, name: 'Class 10-A' },
-        { id: 2, name: 'Class 10-B' },
-        { id: 3, name: 'Class 9-A' },
-        { id: 4, name: 'Class 9-B' },
-      ];
-      setClasses(mockClasses);
-    };
-    fetchClasses();
-  }, []);
-
-  useEffect(() => {
-    if (selectedClass) {
-      // Fetch students for selected class
-      const fetchStudents = async () => {
-        // Replace with actual API: fetch(`/api/classes/${selectedClass}/students`)
-        const mockStudents = [
-          { roll_number: 1, name: 'John Doe' },
-          { roll_number: 2, name: 'Jane Smith' },
-          { roll_number: 3, name: 'Mike Johnson' },
-          { roll_number: 4, name: 'Sarah Wilson' },
-          { roll_number: 5, name: 'David Brown' },
-        ];
-        setStudents(mockStudents);
-      };
-      fetchStudents();
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch(`${backend}/classes`);
+      const data = await res.json();
+      setClasses(data);
+    } catch (error) {
+      console.error("Error fetching classes:", error);
     }
-  }, [selectedClass]);
+  };
+  fetchClasses();
+}, []);
+
+
+useEffect(() => {
+  if (selectedClass) {
+    const fetchStudents = async () => {
+      try {
+        const res = await fetch(`${backend}/classes/${selectedClass}/students`);
+        const data = await res.json();
+        setStudents(data);
+      } catch (err) {
+        console.error("Error fetching students:", err);
+      }
+    };
+    fetchStudents();
+  }
+}, [selectedClass]);
+
 
   const handleAddAbsentee = () => {
     const roll = parseInt(rollNumber);
