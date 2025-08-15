@@ -12,7 +12,7 @@ interface Student {
   roll_number: number;
   name: string;
 }
-const backend="https://5cb571fb7611.ngrok-free.app"
+const backend="http://localhost:8000"
 
 const MarkAttendance: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
@@ -74,25 +74,43 @@ useEffect(() => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedClass) return;
+  if (!selectedClass) return;
 
-    const attendanceData = {
-      class_id: selectedClass,
-      date: selectedDate,
-      session: selectedSession,
-      absentees: absentees
-    };
-
-    try {
-      // Replace with actual API: fetch('/api/attendance', { method: 'POST', ... })
-      console.log('Submitting attendance data:', attendanceData);
-      
-      setSubmittedData(attendanceData);
-      setShowModal(true);
-    } catch (error) {
-      console.error('Error submitting attendance:', error);
-    }
+  
+  const attendanceData = {
+    class_id: selectedClass,
+    date: selectedDate,
+    session: selectedSession,  
+    absentees: absentees,
+    marked_by: 1
   };
+    
+  try {
+    const response = await fetch(`${backend}/attendance`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(attendanceData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Server response:", data);
+
+    // Store session for later use
+    localStorage.setItem("savedSession", selectedSession);
+
+    setSubmittedData(attendanceData);
+    setShowModal(true);
+  } catch (error) {
+    console.error("Error submitting attendance:", error);
+  }
+};
+
 
   const handleWhatsAppShare = () => {
     if (!submittedData) return;

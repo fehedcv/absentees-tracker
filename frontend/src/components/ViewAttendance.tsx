@@ -8,6 +8,8 @@ interface AttendanceRecord {
   status: 'present' | 'absent';
 }
 
+const backend="http://localhost:8000"
+
 const ViewAttendance: React.FC = () => {
   const [studentId, setStudentId] = useState('');
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
@@ -17,36 +19,34 @@ const ViewAttendance: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async () => {
-    if (!studentId) return;
-    
-    setLoading(true);
-    try {
-      // Mock API call - replace with actual endpoint
-      // const response = await fetch(`/api/attendance/${studentId}?start=${startDate}&end=${endDate}`);
-      
-      // Mock attendance data
-      const mockData: AttendanceRecord[] = [];
-      const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) });
-      
-      days.forEach(day => {
-        // Random attendance for demo - replace with actual data
-        const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-        if (!isWeekend) {
-          mockData.push({
-            date: format(day, 'yyyy-MM-dd'),
-            status: Math.random() > 0.2 ? 'present' : 'absent'
-          });
-        }
-      });
+  if (!studentId) return;
 
-      setAttendanceData(mockData);
-      setStudentName(`Student ${studentId}`); // Mock student name
-    } catch (error) {
-      console.error('Error fetching attendance:', error);
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const response = await fetch(
+      `${backend}/attendance/${studentId}?start=${startDate}&end=${endDate}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch attendance");
     }
-  };
+
+    const data: AttendanceRecord[] = await response.json();
+
+    setAttendanceData(data);
+
+    // Optional: fetch student name from another endpoint if available
+    // const studentRes = await fetch(`https://YOUR_BACKEND_URL/students/${studentId}`);
+    // const studentInfo = await studentRes.json();
+    // setStudentName(studentInfo.fullname);
+    setStudentName(`Student ${studentId}`); // placeholder if no student info API
+  } catch (error) {
+    console.error("Error fetching attendance:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const presentDays = attendanceData.filter(record => record.status === 'present').length;
   const absentDays = attendanceData.filter(record => record.status === 'absent').length;

@@ -45,19 +45,29 @@ def create_class(class_data: schema.ClassCreate, db:Session = Depends(get_db)):
     return db_class
 
 @app.post("/attendance")
-def insert_attendance(att: schema.AttendanceCreate, db:Session = Depends(get_db)):
-    students = db.query(models.ClassStudent).filter(models.ClassStudent.class_id == att.class_id).all()
-    student_ids = [s.student_id for s in students]
-    
-    for sid in student_ids:
-        status = "absent" if sid in att.absentees else "present"
-        student_id=sid
-        print(status)
-        db_att = models.Attendance(class_id = att.class_id, marked_by = att.marked_by, date = att.date, is_present = status, student_id = student_id)
+def insert_attendance(att: schema.AttendanceCreate, db: Session = Depends(get_db)):
+    # Get students of the class
+    students = db.query(models.ClassStudent).filter(
+        models.ClassStudent.class_id == att.class_id
+    ).all()
+
+    # Map roll_number -> student_id
+    roll_to_id = {s.roll_number: s.student_id for s in students}
+
+    for roll_number, student_id in roll_to_id.items():
+        status = "absent" if roll_number in att.absentees else "present"
+        db_att = models.Attendance(
+            class_id=att.class_id,
+            marked_by=att.marked_by,
+            date=att.date,
+            is_present=status,
+            student_id=student_id
+        )
         db.add(db_att)
-    
-    db.commit() 
+
+    db.commit()
     return {"message": "Attendance inserted successfully"}
+
 
 @app.post("/class_student")
 def insert_class_student(class_student: schema.ClassStudentCreate, db:Session = Depends(get_db)):
@@ -88,3 +98,24 @@ def get_students(class_id: int, db: Session = Depends(get_db)) -> List[Dict]:
         raise HTTPException(status_code=404, detail="No students found for this class")
     
     return [{"roll_number": r[0], "name": r[1]} for r in result]
+
+@app.get("/attendance/{student_id}")
+def get_attendance(
+    student_id: int,
+    start: date,
+    end: date,
+    db: Session = Depends(get_db)
+):
+    records = db.query(models.Attendance).filter(
+        models.Attendance.student_id == student_id,
+        models.Attendance.date >= start,
+        models.Attendance.date <= end
+    ).all()
+
+    return [
+        {
+            "date": record.date.strftime("%Y-%m-%d"),
+            "status": record.is_present  # assuming already "present"/"absent"
+        }
+        for record in records
+    ]
