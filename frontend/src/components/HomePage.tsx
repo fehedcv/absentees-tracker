@@ -13,10 +13,10 @@ const HomePage: React.FC = () => {
     <div className="space-y-8">
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Welcome to AttendanceApp
+          Welcome to Polyfy
         </h1>
         <p className="text-lg text-gray-600 max-w-md mx-auto">
-          Manage student attendance efficiently with our modern, mobile-friendly interface.
+          Manage student attendance efficiently with Polyfy
         </p>
       </div>
 
