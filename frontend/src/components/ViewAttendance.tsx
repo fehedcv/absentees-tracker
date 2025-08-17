@@ -8,7 +8,7 @@ interface AttendanceRecord {
   status: 'present' | 'absent';
 }
 
-const backend="http://localhost:8000"
+const backend="https://polyfyback.onrender.com"
 
 const ViewAttendance: React.FC = () => {
   const [studentId, setStudentId] = useState('');
