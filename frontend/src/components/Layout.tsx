@@ -27,7 +27,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               )}
               <div className="flex items-center space-x-2">
                 <GraduationCap size={28} className="text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-800">AttendanceApp</h1>
+                <h1 className="text-xl font-bold text-gray-800">Polyfy</h1>
               </div>
             </div>
           </div>
